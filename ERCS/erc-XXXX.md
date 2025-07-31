@@ -1,8 +1,8 @@
 ---
 eip: XXXX
-title: SPV Client Contract
-description: 
-author: Artem Chystiakov (@arvolear) <artem@distributedlab.com>, Oleh Komendant (@Hrom131) <oleg.komendant@distributedlab.com>
+title: Simplified Payment Verification Gateway
+description: Trustless singleton contract for verification of Bitcoin transactions through block headers
+author: Artem Chystiakov (@arvolear), Oleh Komendant (@Hrom131)
 discussions-to: 
 status: Draft
 type: Standards Track
