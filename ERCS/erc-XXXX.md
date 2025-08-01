@@ -12,7 +12,7 @@ created: 2025-07-31
 
 ## Abstract
 
-This EIP specifies an on-chain Bitcoin Simplified Payment Verification (SPV) client contract. SPV contract provides the capability to cryptographically verify the inclusion of specific Bitcoin transactions within blocks using Merkle proofs.
+Introduce a singleton contract available at "0xTODO" for on-chain verification of transactions that happened on Bitcoin. The contract acts as a trustless Simplified Payment Verification (SPV) gateway where anyone can submit Bitcoin block headers to. The gateway maintains the mainchain of blocks and allows the existence of Bitcoin transactions to be verified via Merkle proofs.
 
 ## Motivation
 
