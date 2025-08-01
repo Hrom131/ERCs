@@ -30,16 +30,16 @@ The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SH
 
 #### Bitcoin Block Header Structure
 
-In Bitcoin, each block contains a block header, which has a fixed size of 80 bytes and the following structure:
+In Bitcoin, each block contains a header, which has a fixed size of 80 bytes and follows the following structure:
 
-| Field         | Size     | Format            | Description                                                                 |
-| :------------ | :------- | :---------------- | :-------------------------------------------------------------------------- |
-| Version       | 4 bytes  | little-endian     | The version number for the block.                                           |
-| Previous Block| 32 bytes | natural byte order| The block hash of a previous block this block is building on top of.        |
-| Merkle Root   | 32 bytes | natural byte order| A fingerprint for all of the transactions included in the block.            |
-| Time          | 4 bytes  | little-endian     | The current time as a Unix timestamp.                                       |
-| Bits          | 4 bytes  | little-endian     | A compact representation of the current target.                             |
-| Nonce         | 4 bytes  | little-endian     | A 32-bit number which miners change to find a valid block hash.             |
+| Field          | Size     | Format             | Description                                                          |
+| :------------- | :------- | :----------------- | :------------------------------------------------------------------- |
+| Version        | 4 bytes  | little-endian      | The version number of the block.                                     |
+| Previous Block | 32 bytes | natural byte order | The block hash of a previous block this block is building on top of. |
+| Merkle Root    | 32 bytes | natural byte order | A fingerprint for all of the transactions included in the block.     |
+| Time           | 4 bytes  | little-endian      | The current time as a Unix timestamp.                                |
+| Bits           | 4 bytes  | little-endian      | A compact representation of the current target (difficulty).         |
+| Nonce          | 4 bytes  | little-endian      | A 32-bit number which miners compute to find a valid block hash.     |
 
 The fields within the block header are sequentially ordered as presented in the table above.
 
