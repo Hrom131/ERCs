@@ -12,15 +12,15 @@ created: 2025-07-31
 
 ## Abstract
 
-Introduce a singleton contract available at "0xTODO" for on-chain verification of transactions that happened on Bitcoin. The contract acts as a trustless Simplified Payment Verification (SPV) gateway where anyone can submit Bitcoin block headers to. The gateway maintains the mainchain of blocks and allows the existence of Bitcoin transactions to be verified via Merkle proofs.
+Introduce a singleton contract for on-chain verification of transactions that happened on Bitcoin. The contract is available at "0xTODO", acting as a trustless Simplified Payment Verification (SPV) gateway where anyone can submit Bitcoin block headers to. The gateway maintains the mainchain of blocks and allows the existence of Bitcoin transactions to be verified via Merkle proofs.
 
 ## Motivation
 
 Ethereum's long term mission has always been to revolutionize the financial world through decentralization, trustlessness, and programmable value enabled by smart contracts. Many gems have been discovered so far, including the renaissance of Decentralized Finance (DeFi), Real-World Assets (RWA), and privacy-preserving protocols.
 
-However, one gem has been unreachable so far -- Bitcoin. Due to its extremely constrained programmability, one can only transfer bitcoins in a trustless manner. This EIP tries to expand their capabilities by laying a solid foundation for bitcoins to be also used in various EVM-based DeFi protocols, unlocking the new trillion dollar market.
+However, one gem has been unreachable so far -- Bitcoin. Due to its extremely constrained programmability, one can only hold and transfer bitcoins in a trustless manner. This EIP tries to expand its capabilities by laying a solid foundation for bitcoins to be also used in various EVM-based DeFi protocols, unlocking the whole new trillion dollar market.
 
-The singleton SPV gateway contract defined in this proposal acts as a trustless one-way bridge between Bitcoin and Ethereum, already enabling use cases such as using _native_ BTC as a lending collateral for stablecoin loans. Moreover, with the recent breakthroughs in the BitVM technology, the full-fledged two-way bridge may soon become a reality, powering the permissionless (wrapless) issuance of BTC on Ethereum.
+The singleton SPV gateway contract defined in this proposal acts as a trustless one-way bridge between Bitcoin and Ethereum, already enabling use cases such as using _native_ BTC as a lending collateral for stablecoin loans. Moreover, with the recent breakthroughs in the BitVM technology, the full-fledged, ownerless two-way bridge may soon become a reality, powering the permissionless and wrapless issuance of BTC on Ethereum.
 
 ## Specification
 
