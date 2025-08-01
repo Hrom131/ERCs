@@ -16,11 +16,11 @@ Introduce a singleton contract available at "0xTODO" for on-chain verification o
 
 ## Motivation
 
-The primary motivation behind this EIP is the critical need for a trustless and cryptographically secure method to verify Bitcoin transactions directly within the Ethereum ecosystem. Current approaches to accessing Bitcoin's state from EVM-compatible chains often rely on centralized entities or introduce significant trust assumptions, limiting true decentralization.
+Ethereum's long term mission has always been to revolutionize the financial world through decentralization, trustlessness, and programmable value enabled by smart contracts. Many gems have been discovered so far, including the renaissance of Decentralized Finance (DeFi), Real-World Assets (RWA), and privacy-preserving protocols.
 
-This proposal leverages the Simplified Payment Verification (SPV) mechanism, which enables the validation of Bitcoin transactions by maintaining and verifying a chain of Bitcoin block headers according to Bitcoin's consensus rules. This allows for on-chain, cryptographically provable inclusion of Bitcoin transactions without requiring a full Bitcoin node.
+However, one gem has been unreachable so far -- Bitcoin. Due to its extremely constrained programmability, one can only transfer bitcoins in a trustless manner. This EIP tries to expand their capabilities by laying a solid foundation for bitcoins to be also used in various EVM-based DeFi protocols, unlocking the new trillion dollar market.
 
-The EIP aims to establish a standard interface for an on-chain Bitcoin SPV client contract. This standardization will significantly streamline integration for various DeFi protocols and decentralized applications on Ethereum, enabling secure and permissionless cross-chain interactions that are currently impractical or insecure.
+The singleton SPV gateway contract defined in this proposal acts as a trustless one-way bridge between Bitcoin and Ethereum, already enabling use cases such as using _native_ BTC as a lending collateral for stablecoin loans. Moreover, with the recent breakthroughs in the BitVM technology, the full-fledged two-way bridge may soon become a reality, powering the permissionless (wrapless) issuance of BTC on Ethereum.
 
 ## Specification
 
