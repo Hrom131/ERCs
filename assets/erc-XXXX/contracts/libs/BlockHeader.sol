@@ -42,65 +42,65 @@ library BlockHeader {
     /**
      * @notice Calculates the double SHA256 hash of a raw block header.
      * This is the standard method for deriving a Bitcoin block hash
-     * @param blockHeaderRaw_ The raw bytes of the block header
+     * @param blockHeaderRaw The raw bytes of the block header
      * @return The calculated block hash
      */
-    function getBlockHeaderHash(bytes calldata blockHeaderRaw_) internal pure returns (bytes32) {
-        bytes32 rawBlockHash_ = sha256(abi.encode(sha256(blockHeaderRaw_)));
+    function getBlockHeaderHash(bytes calldata blockHeaderRaw) internal pure returns (bytes32) {
+        bytes32 rawBlockHash = sha256(abi.encode(sha256(blockHeaderRaw)));
 
-        return _reverseHash(rawBlockHash_);
+        return _reverseHash(rawBlockHash);
     }
 
     /**
      * @notice Parses a raw byte array into a structured `BlockHeaderData` and calculates its hash.
      * It validates the length of the input and correctly decodes each field
-     * @param blockHeaderRaw_ The raw bytes of the block header
-     * @return headerData_ The parsed `BlockHeaderData` structure
-     * @return blockHash_ The calculated hash of the block header
+     * @param blockHeaderRaw The raw bytes of the block header
+     * @return headerData The parsed `BlockHeaderData` structure
+     * @return blockHash The calculated hash of the block header
      */
     function parseBlockHeaderData(
-        bytes calldata blockHeaderRaw_
-    ) internal pure returns (BlockHeaderData memory headerData_, bytes32 blockHash_) {
+        bytes calldata blockHeaderRaw
+    ) internal pure returns (BlockHeaderData memory headerData, bytes32 blockHash) {
         require(
-            blockHeaderRaw_.length == BLOCK_HEADER_DATA_LENGTH,
+            blockHeaderRaw.length == BLOCK_HEADER_DATA_LENGTH,
             InvalidBlockHeaderDataLength()
         );
 
-        headerData_ = BlockHeaderData({
-            version: uint32(_reverseBytes(blockHeaderRaw_[0:4])),
-            prevBlockHash: _reverseHash(bytes32(blockHeaderRaw_[4:36])),
-            merkleRoot: _reverseHash(bytes32(blockHeaderRaw_[36:68])),
-            time: uint32(_reverseBytes(blockHeaderRaw_[68:72])),
-            bits: bytes4(uint32(_reverseBytes(blockHeaderRaw_[72:76]))),
-            nonce: uint32(_reverseBytes(blockHeaderRaw_[76:80]))
+        headerData = BlockHeaderData({
+            version: uint32(_reverseBytes(blockHeaderRaw[0:4])),
+            prevBlockHash: _reverseHash(bytes32(blockHeaderRaw[4:36])),
+            merkleRoot: _reverseHash(bytes32(blockHeaderRaw[36:68])),
+            time: uint32(_reverseBytes(blockHeaderRaw[68:72])),
+            bits: bytes4(uint32(_reverseBytes(blockHeaderRaw[72:76]))),
+            nonce: uint32(_reverseBytes(blockHeaderRaw[76:80]))
         });
-        blockHash_ = getBlockHeaderHash(blockHeaderRaw_);
+        blockHash = getBlockHeaderHash(blockHeaderRaw);
     }
 
     /**
      * @notice Converts a `BlockHeaderData` structure back into its raw byte representation.
      * This function reconstructs the original byte sequence of the block header
-     * @param headerData_ The `BlockHeaderData` structure to convert
+     * @param headerData The `BlockHeaderData` structure to convert
      * @return The raw byte representation of the block header
      */
-    function toRawBytes(BlockHeaderData memory headerData_) internal pure returns (bytes memory) {
+    function toRawBytes(BlockHeaderData memory headerData) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
-                _reverseUint32(headerData_.version),
-                _reverseHash(headerData_.prevBlockHash),
-                _reverseHash(headerData_.merkleRoot),
-                _reverseUint32(headerData_.time),
-                _reverseUint32(uint32(headerData_.bits)),
-                _reverseUint32(headerData_.nonce)
+                _reverseUint32(headerData.version),
+                _reverseHash(headerData.prevBlockHash),
+                _reverseHash(headerData.merkleRoot),
+                _reverseUint32(headerData.time),
+                _reverseUint32(uint32(headerData.bits)),
+                _reverseUint32(headerData.nonce)
             );
     }
 
-    function _reverseHash(bytes32 blockHash_) private pure returns (bytes32) {
-        return bytes32(uint256(blockHash_).reverseBytes());
+    function _reverseHash(bytes32 blockHash) private pure returns (bytes32) {
+        return bytes32(uint256(blockHash).reverseBytes());
     }
 
-    function _reverseBytes(bytes calldata bytesToConvert_) private pure returns (uint256) {
-        return uint256(bytes32(bytesToConvert_)).reverseBytes();
+    function _reverseBytes(bytes calldata bytesToConvert) private pure returns (uint256) {
+        return uint256(bytes32(bytesToConvert)).reverseBytes();
     }
 
     function _reverseUint32(uint32 input_) private pure returns (uint32) {

@@ -25,50 +25,50 @@ library TxMerkleProof {
     error InvalidLengths();
 
     /**
-     * @notice Returns true if `leaf_` can be proven to be part of a Merkle tree
-     * defined by `root_`. Requires a `proof_` containing the sibling hashes along
-     * the path from the leaf to the root. Each element of `directions_` indicates
+     * @notice Returns true if `leaf` can be proven to be part of a Merkle tree
+     * defined by `root`. Requires a `proof` containing the sibling hashes along
+     * the path from the leaf to the root. Each element of `directions` indicates
      * the hashing order for each pair. Uses double SHA-256 hashing
      */
     function verify(
-        bytes32[] calldata proof_,
-        HashDirection[] calldata directions_,
-        bytes32 root_,
-        bytes32 leaf_
+        bytes32[] calldata proof,
+        HashDirection[] calldata directions,
+        bytes32 root,
+        bytes32 leaf
     ) internal pure returns (bool) {
-        require(directions_.length == proof_.length, InvalidLengths());
+        require(directions.length == proof.length, InvalidLengths());
 
-        return processProof(proof_, directions_, leaf_) == root_;
+        return processProof(proof, directions, leaf) == root;
     }
 
     /**
      * @notice Returns the rebuilt hash obtained by traversing the Merkle tree
-     * from `leaf_` using `proof_`. A `proof_` is valid if and only if the rebuilt
+     * from `leaf` using `proof`. A `proof` is valid if and only if the rebuilt
      * hash matches the given tree root. The pre-images are hashed in the order
-     * specified by the `directions_` elements. Uses double SHA-256 hashing
+     * specified by the `directions` elements. Uses double SHA-256 hashing
      */
     function processProof(
-        bytes32[] calldata proof_,
-        HashDirection[] calldata directions_,
-        bytes32 leaf_
+        bytes32[] calldata proof,
+        HashDirection[] calldata directions,
+        bytes32 leaf
     ) internal pure returns (bytes32) {
-        bytes32 computedHash_ = leaf_;
-        uint256 proofLength_ = proof_.length;
+        bytes32 computedHash = leaf;
+        uint256 proofLength = proof.length;
 
-        for (uint256 i = 0; i < proofLength_; ++i) {
-            if (directions_[i] == HashDirection.Left) {
-                computedHash_ = _doubleSHA256(computedHash_, proof_[i]);
-            } else if (directions_[i] == HashDirection.Right) {
-                computedHash_ = _doubleSHA256(proof_[i], computedHash_);
+        for (uint256 i = 0; i < proofLength; ++i) {
+            if (directions[i] == HashDirection.Left) {
+                computedHash = _doubleSHA256(computedHash, proof[i]);
+            } else if (directions[i] == HashDirection.Right) {
+                computedHash = _doubleSHA256(proof[i], computedHash);
             } else {
-                computedHash_ = _doubleSHA256(computedHash_, computedHash_);
+                computedHash = _doubleSHA256(computedHash, computedHash);
             }
         }
 
-        return computedHash_;
+        return computedHash;
     }
 
-    function _doubleSHA256(bytes32 left_, bytes32 right_) private pure returns (bytes32) {
-        return sha256(abi.encodePacked(sha256(abi.encodePacked(left_, right_))));
+    function _doubleSHA256(bytes32 left, bytes32 right) private pure returns (bytes32) {
+        return sha256(abi.encodePacked(sha256(abi.encodePacked(left, right))));
     }
 }

@@ -55,19 +55,19 @@ To prevent drastic fluctuations, the adjustment multiplier is capped, preventing
 
 #### Block Header Validation Rules
 
-For a Bitcoin block header to be considered valid and accepted into the chain, it **MUST** adhere to the following consensus rules:
+For a Bitcoin block header to be considered valid and accepted into the chain, it MUST adhere to the following consensus rules:
 
-1.  **Chain Cohesion**: The `Previous Block` hash field **MUST** accurately reference the hash of a valid block that is present within the SPV gateway's known set of valid block headers.
+1.  **Chain Cohesion**: The `Previous Block` hash field MUST accurately reference the hash of a valid block that is present within the SPV gateway's known set of valid block headers.
 
 2.  **Timestamp Rules**:
-    * The `Time` field **MUST** be strictly greater than the **Median Time Past (MTP)** of the previous 11 blocks.
-    * The `Time` field **MUST NOT** be more than 2 hours in the future relative to the validating node's network-adjusted time.
+    * The `Time` field MUST be strictly greater than the **Median Time Past (MTP)** of the previous 11 blocks.
+    * The `Time` field MUST NOT be more than 2 hours in the future relative to the validating node's network-adjusted time.
 
-3.  **Proof-of-Work (PoW) Constraint**: When the block header is hashed twice using `SHA256`, the resulting hash **MUST** be less than or equal to the current `target` value, as derived from the difficulty adjustment mechanism.
+3.  **PoW Constraint**: When the block header is hashed twice using `SHA256`, the resulting hash MUST be less than or equal to the current `target` value, as derived from the difficulty adjustment mechanism.
 
 #### Canonical Chain Definition
 
-Bitcoin's **canonical chain** is determined not merely by its length, but by possessing the highest **cumulative Proof-of-Work (PoW)** among all valid competing chains. This cumulative work represents the total computational effort expended to mine all blocks within a specific chain.
+Bitcoin's **canonical chain** is determined not merely by its length, but by possessing the highest **cumulative PoW** among all valid competing chains. This cumulative work represents the total computational effort expended to mine all blocks within a specific chain.
 
 The **work** contributed by a single block is inversely proportional to its `target` value. Specifically, the work of a block can be calculated as $1/target$. The `target` value for a block is derived from its `Bits` field.
 
@@ -75,7 +75,7 @@ The total cumulative work of a chain is the sum of the work values of all blocks
 
 ### SPV Gateway
 
-The `SPVGateway` contract MUST provide a permissionless mechanism for its initial bootstrapping. This mechanism MUST allow for the submission of a valid Bitcoin block header, its corresponding block height, and the cumulative Proof-of-Work (PoW) up to that block, without requiring special permissions.
+The `SPVGateway` contract MUST provide a permissionless mechanism for its initial bootstrapping. This mechanism MUST allow for the submission of a valid Bitcoin block header, its corresponding block height, and the cumulative PoW up to that block, without requiring special permissions.
 
 All fields within the `BlockHeaderData` MUST be converted to **big-endian** byte order for internal representation and processing within the smart contract.
 
@@ -145,55 +145,55 @@ interface ISPVGateway {
     /**
      * @notice OPTIONAL Function that adds a batch of the block headers to the contract.
      * Each block header is validated and added sequentially
-     * @param blockHeaderRawArray_ An array of raw block header bytes
+     * @param blockHeaderRawArray An array of raw block header bytes
      */
-    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray_) external;
+    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray) external;
 
     /**
      * @notice Adds a single raw block header to the contract.
      * The block header is validated before being added
-     * @param blockHeaderRaw_ The raw block header bytes
+     * @param blockHeaderRaw The raw block header bytes
      */
-    function addBlockHeader(bytes calldata blockHeaderRaw_) external;
+    function addBlockHeader(bytes calldata blockHeaderRaw) external;
 
     /**
      * @notice Validates a given block hash and returns its mainchain status and confirmation count
      * 
-     * @param blockHash_ The hash of the block to validate
+     * @param blockHash The hash of the block to validate
      * @return isInMainchain True if the block is in the mainchain, false otherwise
      * @return confirmationsCount The number of blocks that have been mined on top of the validated block
      */
-    function validateBlockHash(bytes32 blockHash_) external view returns (bool, uint256);
+    function validateBlockHash(bytes32 blockHash) external view returns (bool, uint256);
 
     /**
      * @notice Verifies that given txid is included in the specified block
-     * @param blockHash_ The hash of the block in which to verify the transaction
-     * @param txid_ The transaction id to verify
-     * @param merkleProof_ The array of hashes used to build the Merkle root
-     * @param directions_ The array indicating the hashing directions for the Merkle proof
+     * @param blockHash The hash of the block in which to verify the transaction
+     * @param txid The transaction id to verify
+     * @param merkleProof The array of hashes used to build the Merkle root
+     * @param directions The array indicating the hashing directions for the Merkle proof
      */
     function verifyTx(
-        bytes32 blockHash_,
-        bytes32 txid_,
-        bytes32[] memory merkleProof_,
-        HashDirection[] calldata directions_
+        bytes32 blockHash,
+        bytes32 txid,
+        bytes32[] memory merkleProof,
+        HashDirection[] calldata directions
     ) external view returns (bool);
 
     /**
      * @notice Returns the Merkle root of a given block hash.
      * This function retrieves the Merkle root from the stored block header data
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The Merkle root of the block
      */
-    function getBlockMerkleRoot(bytes32 blockHash_) external view returns (bytes32);
+    function getBlockMerkleRoot(bytes32 blockHash) external view returns (bytes32);
 
     /**
      * @notice Returns the basic block data for a given block hash.
      * This includes the block header and its height
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The basic block data
      */
-    function getBlockData(bytes32 blockHash_) external view returns (BlockData memory);
+    function getBlockData(bytes32 blockHash) external view returns (BlockData memory);
 
     /**
      * @notice Returns the hash of the current mainchain head.
@@ -212,10 +212,10 @@ interface ISPVGateway {
     /**
      * @notice Returns the block height for a given block hash
      * This function retrieves the height at which the block exists in the chain
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The height of the block
      */
-    function getBlockHeight(bytes32 blockHash_) external view returns (uint256);
+    function getBlockHeight(bytes32 blockHash) external view returns (uint256);
 
     /**
      * @notice Returns the block hash for a given block height.
@@ -228,25 +228,25 @@ interface ISPVGateway {
     /**
      * @notice Checks if a block exists in the contract's storage.
      * This function verifies the presence of a block by its hash
-     * @param blockHash_ The hash of the block to check
+     * @param blockHash The hash of the block to check
      * @return True if the block exists, false otherwise
      */
-    function blockExists(bytes32 blockHash_) external view returns (bool);
+    function blockExists(bytes32 blockHash) external view returns (bool);
 
     /**
      * @notice Checks if a given block is part of the mainchain.
      * This function determines if the block is on the most accumulated work chain
-     * @param blockHash_ The hash of the block to check
+     * @param blockHash The hash of the block to check
      * @return True if the block is in the mainchain, false otherwise
      */
-    function isInMainchain(bytes32 blockHash_) external view returns (bool);
+    function isInMainchain(bytes32 blockHash) external view returns (bool);
 }
 ```
 
 The `addBlockHeader` function MUST:
 - Validate that the submitted raw block header has a fixed size of 80 bytes.
 - Enforce all block header validation rules as specified in the 'Block Header Validation Rules' section.
-- Integrate the new block header into the known chain by calculating its cumulative Proof-of-Work (PoW) and managing potential chain reorganizations as defined in the 'Canonical Chain Definition' section.
+- Integrate the new block header into the known chain by calculating its cumulative PoW and managing potential chain reorganizations as defined in the 'Canonical Chain Definition' section.
 - Emit a `BlockHeaderAdded` event upon successful addition of the block header.
 - Emit a `MainchainHeadUpdated` event if the canonical chain was updated.
 
@@ -254,7 +254,7 @@ The `addBlockHeader` function MUST:
 
 The design of this EIP for an on-chain Bitcoin SPV gateway aims to securely bridge the Bitcoin and Ethereum ecosystems without trusted intermediaries, maximizing decentralization, security, and usability.
 
-To enable trustless verification of Bitcoin transactions on Ethereum, the `SPVGateway` contract **MUST** be entirely permissionless. Therefore, the initialization of the initial block **MUST** be as transparent and trust-minimized as possible, avoiding reliance on any privileged entity.
+To enable trustless verification of Bitcoin transactions on Ethereum, the `SPVGateway` contract MUST be entirely permissionless. Therefore, the initialization of the initial block MUST be as transparent and trust-minimized as possible, avoiding reliance on any privileged entity.
 
 The following initialization options were considered:
 
@@ -262,13 +262,13 @@ The following initialization options were considered:
 2.  **Initialization from an arbitrary block height by trusting provided cumulative work and height:** This EIP adopts this method for its primary initialization mechanism. It allows for flexible bootstrapping of the SPV gateway from any valid historical block, significantly reducing the initial gas cost and time required compared to validating an entire chain from genesis. While this implies trust in the initial submitted values, it's a common practice for bootstrapping light clients and can be secured via off-chain mechanisms for initial validation (e.g., community-verified checkpoints).
 3.  **Initialization with Zero-Knowledge Proof (ZKP) for historical correctness:** This advanced method involves proving the entire history of Bitcoin up to a specific block using ZKP.
 
-Upon submission or internal processing of the raw block header, all fields within the `BlockHeaderData` structure **MUST** be converted to big-endian byte order. This ensures optimal compatibility and efficiency with Ethereum's native EVM arithmetic and cryptographic algorithms, which primarily operate on big-endian, unlike Bitcoin's native little-endian integer serialization.
+Upon submission or internal processing of the raw block header, all fields within the `BlockHeaderData` structure MUST be converted to big-endian byte order. This ensures optimal compatibility and efficiency with Ethereum's native EVM arithmetic and cryptographic algorithms, which primarily operate on big-endian, unlike Bitcoin's native little-endian integer serialization.
 
 The `addBlockHeader` function is designed to accept any valid Bitcoin block headers, even if not currently part of the canonical chain. This is crucial as Bitcoin's consensus rules allow for chain reorganizations of arbitrary depth. A rigid SPV gateway tracking only the immediate canonical head risks vulnerability during forks.
 
 By maintaining multiple valid forks and tracking their cumulative Proof-of-Work, the `SPVGateway` enhances robustness against chain reorganizations. Consequently, the `SPVGateway` contract **does not** include internal block 'finalization' parameters. This determination is left to consuming protocols, promoting modularity and allowing each to define its own security thresholds.
 
-The inclusion of an **OPTIONAL** `addBlockHeaderBatch` function offers significant gas optimizations. For batches exceeding 11 blocks, `Median Time Past (MTP)` can be calculated using timestamps from memory, substantially reducing storage reads and transaction costs.
+The inclusion of an OPTIONAL `addBlockHeaderBatch` function offers significant gas optimizations. For batches exceeding 11 blocks, `Median Time Past (MTP)` can be calculated using timestamps from memory, substantially reducing storage reads and transaction costs.
 
 The `verifyTx` function's `directions_` parameter is an integral part of a standard Merkle Proof from a full Bitcoin node. It provides explicit instructions for hashing order during Merkle Proof verification, ensuring accurate on-chain replication of the off-chain Merkle tree construction and cryptographic integrity.
 
@@ -292,9 +292,9 @@ The following supporting libraries are provided to facilitate the implementation
 
 Among potential vulnerabilities, the following can be noted.
 
-The security of the `SPVGateway` is directly dependent on the security of Bitcoin's underlying Proof-of-Work (PoW) consensus. A successful 51% attack on the Bitcoin network, would allow an attacker to submit fraudulent block headers that would be accepted by the contract, thereby compromising its state.
+The security of the `SPVGateway` is directly dependent on the security of Bitcoin's underlying PoW consensus. A successful 51% attack on the Bitcoin network, would allow an attacker to submit fraudulent block headers that would be accepted by the contract, thereby compromising its state.
 
-Unlike other blockchain systems with deterministic finality, Bitcoin's consensus is probabilistic. The `SPVGateway` contract is designed to handle chain reorganizations of arbitrary depth, but it cannot prevent them. As a result, transactions included in a block may not be permanently final. All dApps and protocols relying on this contract **MUST** implement their own security policies to determine a sufficient number of block confirmations before a transaction is considered 'final' for their specific use case.
+Unlike other blockchain systems with deterministic finality, Bitcoin's consensus is probabilistic. The `SPVGateway` contract is designed to handle chain reorganizations of arbitrary depth, but it cannot prevent them. As a result, transactions included in a block may not be permanently final. All dApps and protocols relying on this contract MUST implement their own security policies to determine a sufficient number of block confirmations before a transaction is considered 'final' for their specific use case.
 
 While the `addBlockHeader` function is permissionless and validates each new header cryptographically, the contract's initial state (its starting block header, height, and cumulative PoW) is a point of trust. The integrity of the entire chain history within the contract is built upon the correctness of this initial data. Although the EIP's design allows for flexible bootstrapping, the responsibility for verifying the initial state falls on the community and the dApps that choose to use a specific deployment of the `SPVGateway`.
 

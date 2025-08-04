@@ -51,112 +51,112 @@ library TargetsHelper {
     /**
      * @notice Checks if a given block height is a target adjustment block.
      * Adjustment occurs every `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
-     * @param blockHeight_ The height of the block to check
+     * @param blockHeight The height of the block to check
      * @return True if it's an adjustment block, false otherwise
      */
-    function isTargetAdjustmentBlock(uint256 blockHeight_) internal pure returns (bool) {
-        return getEpochBlockNumber(blockHeight_) == 0 && blockHeight_ > 0;
+    function isTargetAdjustmentBlock(uint256 blockHeight) internal pure returns (bool) {
+        return getEpochBlockNumber(blockHeight) == 0 && blockHeight > 0;
     }
 
     /**
      * @notice Calculates the block number within the current difficulty adjustment epoch.
      * The epoch starts at block height `0` and resets every `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
-     * @param blockHeight_ The height of the block
+     * @param blockHeight The height of the block
      * @return The block number within its current epoch
      */
-    function getEpochBlockNumber(uint256 blockHeight_) internal pure returns (uint256) {
-        return blockHeight_ % DIFFICULTY_ADJUSTMENT_INTERVAL;
+    function getEpochBlockNumber(uint256 blockHeight) internal pure returns (uint256) {
+        return blockHeight % DIFFICULTY_ADJUSTMENT_INTERVAL;
     }
 
     /**
      * @notice Calculates and rounds the new difficulty target based on current target and actual passed time.
      * This function applies both the target adjustment and the rounding rules
-     * @param currentTarget_ The current difficulty target
-     * @param actualPassedTime_ The actual time taken to mine the last `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
+     * @param currentTarget The current difficulty target
+     * @param actualPassedTime The actual time taken to mine the last `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
      * @return The new, rounded difficulty target
      */
     function countNewRoundedTarget(
-        bytes32 currentTarget_,
-        uint256 actualPassedTime_
+        bytes32 currentTarget,
+        uint256 actualPassedTime
     ) internal pure returns (bytes32) {
-        return roundTarget(countNewTarget(currentTarget_, actualPassedTime_));
+        return roundTarget(countNewTarget(currentTarget, actualPassedTime));
     }
 
     /**
      * @notice Calculates the new difficulty target without rounding.
      * It adjusts the target based on the difference between actual and expected block times, clamping the adjustment
-     * @param currentTarget_ The current difficulty target
-     * @param actualPassedTime_ The actual time taken to mine the last `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
+     * @param currentTarget The current difficulty target
+     * @param actualPassedTime The actual time taken to mine the last `DIFFICULTY_ADJUSTMENT_INTERVAL` blocks
      * @return The new difficulty target before rounding
      */
     function countNewTarget(
-        bytes32 currentTarget_,
-        uint256 actualPassedTime_
+        bytes32 currentTarget,
+        uint256 actualPassedTime
     ) internal pure returns (bytes32) {
-        uint256 currentRatio = (actualPassedTime_ * TARGET_FIXED_POINT_FACTOR) /
+        uint256 currentRatio = (actualPassedTime * TARGET_FIXED_POINT_FACTOR) /
             EXPECTED_TARGET_BLOCKS_TIME;
 
         currentRatio = Math.min(Math.max(currentRatio, MIN_TARGET_RATIO), MAX_TARGET_RATIO);
 
-        bytes32 target_ = bytes32(
-            Math.mulDiv(uint256(currentTarget_), currentRatio, TARGET_FIXED_POINT_FACTOR)
+        bytes32 target = bytes32(
+            Math.mulDiv(uint256(currentTarget), currentRatio, TARGET_FIXED_POINT_FACTOR)
         );
 
-        return target_ > INITIAL_TARGET ? INITIAL_TARGET : target_;
+        return target > INITIAL_TARGET ? INITIAL_TARGET : target;
     }
 
     /**
      * @notice Calculates the cumulative work for an entire difficulty adjustment epoch.
      * This is the sum of block work for all blocks within an epoch
-     * @param epochTarget_ The difficulty target for the epoch
+     * @param epochTarget The difficulty target for the epoch
      * @return The cumulative work for the epoch
      */
-    function countEpochCumulativeWork(bytes32 epochTarget_) internal pure returns (uint256) {
-        return countCumulativeWork(epochTarget_, DIFFICULTY_ADJUSTMENT_INTERVAL);
+    function countEpochCumulativeWork(bytes32 epochTarget) internal pure returns (uint256) {
+        return countCumulativeWork(epochTarget, DIFFICULTY_ADJUSTMENT_INTERVAL);
     }
 
     /**
      * @notice Calculates the total cumulative work for a specified number of blocks.
      * This is the product of the block work and the number of blocks
-     * @param epochTarget_ The difficulty target for the blocks
-     * @param blocksCount_ The number of blocks to count cumulative work for
+     * @param epochTarget The difficulty target for the blocks
+     * @param blocksCount The number of blocks to count cumulative work for
      * @return The total cumulative work
      */
     function countCumulativeWork(
-        bytes32 epochTarget_,
-        uint256 blocksCount_
+        bytes32 epochTarget,
+        uint256 blocksCount
     ) internal pure returns (uint256) {
-        return countBlockWork(epochTarget_) * blocksCount_;
+        return countBlockWork(epochTarget) * blocksCount;
     }
 
     /**
      * @notice Calculates the work required for a single block given its difficulty target.
      * This is a measure of the computational effort to find a block
-     * @param target_ The difficulty target of the block
-     * @return blockWork_ The work for the block
+     * @param target The difficulty target of the block
+     * @return blockWork The work for the block
      */
-    function countBlockWork(bytes32 target_) internal pure returns (uint256 blockWork_) {
+    function countBlockWork(bytes32 target) internal pure returns (uint256 blockWork) {
         assembly {
             // Work is calculated as (2^256 - 1) / (target + 1)
-            blockWork_ := div(not(blockWork_), add(target_, 0x1))
+            blockWork := div(not(blockWork), add(target, 0x1))
         }
     }
 
     /**
      * @notice Converts the compact "bits" representation of difficulty to the full 256-bit target
      * This uses inline assembly for efficient bit manipulation
-     * @param bits_ The compact difficulty bits
-     * @return target_ The full 256-bit target
+     * @param bits The compact difficulty bits
+     * @return target The full 256-bit target
      */
-    function bitsToTarget(bytes4 bits_) internal pure returns (bytes32 target_) {
+    function bitsToTarget(bytes4 bits) internal pure returns (bytes32 target) {
         assembly {
-            let targetShift := mul(sub(0x20, byte(0, bits_)), 0x8)
+            let targetShift := mul(sub(0x20, byte(0, bits)), 0x8)
 
-            target_ := shr(targetShift, shl(0x8, bits_))
+            target := shr(targetShift, shl(0x8, bits))
         }
     }
 
-    function targetToBits(bytes32 target_) internal pure returns (bytes4 bits_) {
+    function targetToBits(bytes32 target) internal pure returns (bytes4 bits) {
         assembly {
             let coefficientLength := 0x3
             let coefficientStartIndex := 0
@@ -169,7 +169,7 @@ library TargetsHelper {
             } lt(i, 0x20) {
                 i := add(i, 0x1)
             } {
-                let currentByte := byte(i, target_)
+                let currentByte := byte(i, target)
 
                 if gt(currentByte, 0) {
                     coefficientStartIndex := i
@@ -189,14 +189,14 @@ library TargetsHelper {
             } lt(i, coefficientLength) {
                 i := add(i, 0x1)
             } {
-                mstore8(add(bitsPtr, add(i, 0x1)), byte(add(coefficientStartIndex, i), target_))
+                mstore8(add(bitsPtr, add(i, 0x1)), byte(add(coefficientStartIndex, i), target))
             }
 
-            bits_ := mload(bitsPtr)
+            bits := mload(bitsPtr)
         }
     }
 
-    function roundTarget(bytes32 currentTarget_) internal pure returns (bytes32 roundedTarget_) {
+    function roundTarget(bytes32 currentTarget) internal pure returns (bytes32 roundedTarget) {
         assembly {
             let coefficientLength := 0x3
             let coefficientEndIndex := 0
@@ -206,7 +206,7 @@ library TargetsHelper {
             } lt(i, 0x20) {
                 i := add(i, 0x1)
             } {
-                let currentByte := byte(i, currentTarget_)
+                let currentByte := byte(i, currentTarget)
 
                 if gt(currentByte, 0) {
                     coefficientEndIndex := add(i, coefficientLength)
@@ -222,7 +222,7 @@ library TargetsHelper {
             let keepBits := mul(sub(0x20, coefficientEndIndex), 8)
             let mask := not(sub(shl(keepBits, 1), 1))
 
-            roundedTarget_ := and(currentTarget_, mask)
+            roundedTarget := and(currentTarget, mask)
         }
     }
 }

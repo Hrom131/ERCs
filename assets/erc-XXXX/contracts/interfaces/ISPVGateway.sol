@@ -102,37 +102,37 @@ interface ISPVGateway {
     /**
      * @notice Adds a batch of the block headers to the contract.
      * Each block header is validated and added sequentially
-     * @param blockHeaderRawArray_ An array of raw block header bytes
+     * @param blockHeaderRawArray An array of raw block header bytes
      */
-    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray_) external;
+    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray) external;
 
     /**
      * @notice Adds a single raw block header to the contract.
      * The block header is validated before being added
-     * @param blockHeaderRaw_ The raw block header bytes
+     * @param blockHeaderRaw The raw block header bytes
      */
-    function addBlockHeader(bytes calldata blockHeaderRaw_) external;
+    function addBlockHeader(bytes calldata blockHeaderRaw) external;
 
     /**
      * @notice Validates a given block hash and returns its mainchain status and confirmation count
-     * @param blockHash_ The hash of the block to validate
+     * @param blockHash The hash of the block to validate
      * @return isInMainchain True if the block is in the mainchain, false otherwise
      * @return confirmationsCount The number of blocks that have been mined on top of the validated block
      */
-    function validateBlockHash(bytes32 blockHash_) external view returns (bool, uint256);
+    function validateBlockHash(bytes32 blockHash) external view returns (bool, uint256);
 
     /**
      * @notice Verifies that given txid is included in the specified block
-     * @param blockHash_ The hash of the block in which to verify the transaction
-     * @param txid_ The transaction id to verify
-     * @param merkleProof_ The array of hashes used to build the Merkle root
-     * @param directions_ The array indicating the hashing directions for the Merkle proof
+     * @param blockHash The hash of the block in which to verify the transaction
+     * @param txid The transaction id to verify
+     * @param merkleProof The array of hashes used to build the Merkle root
+     * @param directions The array indicating the hashing directions for the Merkle proof
      */
     function verifyTx(
-        bytes32 blockHash_,
-        bytes32 txid_,
-        bytes32[] memory merkleProof_,
-        TxMerkleProof.HashDirection[] calldata directions_
+        bytes32 blockHash,
+        bytes32 txid,
+        bytes32[] memory merkleProof,
+        TxMerkleProof.HashDirection[] calldata directions
     ) external view returns (bool);
 
     /**
@@ -145,26 +145,26 @@ interface ISPVGateway {
     /**
      * @notice Returns the Merkle root of a given block hash.
      * This function retrieves the Merkle root from the stored block header data
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The Merkle root of the block
      */
-    function getBlockMerkleRoot(bytes32 blockHash_) external view returns (bytes32);
+    function getBlockMerkleRoot(bytes32 blockHash) external view returns (bytes32);
 
     /**
      * @notice Returns detailed information about a block.
      * This includes its data, mainchain status, and cumulative work
-     * @param blockHash_ The hash of the block
-     * @return blockInfo_ The detailed information of the block
+     * @param blockHash The hash of the block
+     * @return blockInfo The detailed information of the block
      */
-    function getBlockInfo(bytes32 blockHash_) external view returns (BlockInfo memory blockInfo_);
+    function getBlockInfo(bytes32 blockHash) external view returns (BlockInfo memory blockInfo);
 
     /**
      * @notice Returns the basic block data for a given block hash.
      * This includes the block header and its height
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The basic block data
      */
-    function getBlockData(bytes32 blockHash_) external view returns (BlockData memory);
+    function getBlockData(bytes32 blockHash) external view returns (BlockData memory);
 
     /**
      * @notice Returns the hash of the current mainchain head.
@@ -183,40 +183,40 @@ interface ISPVGateway {
     /**
      * @notice Returns the block height for a given block hash
      * This function retrieves the height at which the block exists in the chain
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The height of the block
      */
-    function getBlockHeight(bytes32 blockHash_) external view returns (uint256);
+    function getBlockHeight(bytes32 blockHash) external view returns (uint256);
 
     /**
      * @notice Returns the block hash for a given block height.
      * This function retrieves the hash of the block from the mainchain at the specified height
-     * @param blockHeight_ The height of the block
+     * @param blockHeight The height of the block
      * @return The hash of the block
      */
-    function getBlockHash(uint256 blockHeight_) external view returns (bytes32);
+    function getBlockHash(uint256 blockHeight) external view returns (bytes32);
 
     /**
      * @notice Returns the target of a given block hash.
      * This function retrieves the difficulty target from the block header
-     * @param blockHash_ The hash of the block
+     * @param blockHash The hash of the block
      * @return The target of the block
      */
-    function getBlockTarget(bytes32 blockHash_) external view returns (bytes32);
+    function getBlockTarget(bytes32 blockHash) external view returns (bytes32);
 
     /**
      * @notice Checks if a block exists in the contract's storage.
      * This function verifies the presence of a block by its hash
-     * @param blockHash_ The hash of the block to check
+     * @param blockHash The hash of the block to check
      * @return True if the block exists, false otherwise
      */
-    function blockExists(bytes32 blockHash_) external view returns (bool);
+    function blockExists(bytes32 blockHash) external view returns (bool);
 
     /**
      * @notice Checks if a given block is part of the mainchain.
      * This function determines if the block is on the most accumulated work chain
-     * @param blockHash_ The hash of the block to check
+     * @param blockHash The hash of the block to check
      * @return True if the block is in the mainchain, false otherwise
      */
-    function isInMainchain(bytes32 blockHash_) external view returns (bool);
+    function isInMainchain(bytes32 blockHash) external view returns (bool);
 }
