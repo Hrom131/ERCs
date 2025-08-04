@@ -45,33 +45,33 @@ The fields within the block header are sequentially ordered as presented in the 
 
 #### Difficulty Adjustment Mechanism
 
-Bitcoin's Proof-of-Work (PoW) consensus mechanism relies on a dynamic **difficulty target**. This target's initial value was `0x00000000ffff0000000000000000000000000000000000000000000000000000`, which also serves as its minimum threshold (the "minimum difficulty").
+Bitcoin's Proof-of-Work (PoW) consensus mechanism has a probabilistic finality, thus relying on a dynamic **difficulty target** adjustments. The target's initial value is set to `0x00000000ffff0000000000000000000000000000000000000000000000000000`, which also serves as the minimum difficulty threshold.
 
-The `target` is recalculated approximately every two weeks, specifically every **2016 blocks**, a period commonly referred to as a **difficulty adjustment period** or **retargeting period**.
+The `target` is recalculated every 2016 blocks (approximately every two weeks), a period commonly referred to as a **difficulty adjustment period**.
 
-The expected duration for each adjustment period is **1,209,600 seconds** (2016 blocks * 10 minutes/block). The new `target` value is derived by multiplying the current `target` by the ratio of the actual time taken to mine the preceding 2016 blocks to this expected duration.
+The expected duration for each adjustment period is 1,209,600 seconds (2016 blocks * 10 minutes/block). The new `target` value is derived by multiplying the current `target` by the ratio of the actual time taken to mine the preceding 2016 blocks to this expected duration.
 
-To prevent drastic fluctuations, the adjustment multiplier is capped, preventing it from increasing the difficulty by more than 4x or decreasing it by less than 1/4x.
+To prevent drastic difficulty fluctuations, the adjustment multiplier is capped at `4x` and `1/4x` respectively.
 
 #### Block Header Validation Rules
 
 For a Bitcoin block header to be considered valid and accepted into the chain, it MUST adhere to the following consensus rules:
 
-1.  **Chain Cohesion**: The `Previous Block` hash field MUST accurately reference the hash of a valid block that is present within the SPV gateway's known set of valid block headers.
+1. **Chain Cohesion**: The `Previous Block` hash field MUST reference the hash of a valid block that is present in the set of existing block headers.
 
-2.  **Timestamp Rules**:
+2. **Timestamp Rules**:
     * The `Time` field MUST be strictly greater than the **Median Time Past (MTP)** of the previous 11 blocks.
     * The `Time` field MUST NOT be more than 2 hours in the future relative to the validating node's network-adjusted time.
 
-3.  **PoW Constraint**: When the block header is hashed twice using `SHA256`, the resulting hash MUST be less than or equal to the current `target` value, as derived from the difficulty adjustment mechanism.
+3. **PoW Constraint**: When the block header is hashed twice using `SHA256`, the resulting hash MUST be less than or equal to the current `target` value, as derived from the difficulty adjustment mechanism.
 
-#### Canonical Chain Definition
+#### Mainchain Definition
 
-Bitcoin's **canonical chain** is determined not merely by its length, but by possessing the highest **cumulative PoW** among all valid competing chains. This cumulative work represents the total computational effort expended to mine all blocks within a specific chain.
+Bitcoin's **mainchain** is determined not just by its length, but by the greatest **cumulative PoW** among all valid competing chains. This cumulative work represents the total computational effort expended to mine all blocks within a specific chain.
 
-The **work** contributed by a single block is inversely proportional to its `target` value. Specifically, the work of a block can be calculated as $1/target$. The `target` value for a block is derived from its `Bits` field.
+The work contributed by a single block is inversely proportional to its `target` value. Specifically, the work of a block can be calculated as `1 / target`. The `target` value for a block is derived from its `Bits` field, where the first byte encodes the required left hand bit shift, and the other three bytes the actual target value.
 
-The total cumulative work of a chain is the sum of the work values of all blocks within that chain. A block is considered part of the canonical chain if it extends the chain with the greatest cumulative PoW. This mechanism is crucial for resolving forks and maintaining a single, agreed-upon history of transactions.
+The total cumulative work of a chain is the sum of the work values of all blocks within that chain. A block is considered part of the mainchain if it extends the chain with the greatest cumulative PoW.
 
 ### SPV Gateway
 
