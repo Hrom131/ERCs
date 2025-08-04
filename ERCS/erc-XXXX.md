@@ -259,7 +259,7 @@ The `addBlockHeader` function MUST perform the following checks:
 - Enforce all block header validation rules as specified in the "Block Header Validation Rules" section.
 - Integrate the new block header into the known chain by calculating its cumulative PoW and managing potential chain reorganizations as defined in the "Mainchain Definition" section.
 - Emit a `BlockHeaderAdded` event upon successful addition of the block header.
-- Emit a `MainchainHeadUpdated` event if the main chain was updated.
+- Emit a `MainchainHeadUpdated` event if the mainchain was updated.
 
 The `checkTxInclusion` function MUST perform the following steps:
 -  Using the provided `txId`, `merkleProof`, and `directions`, the function MUST compute the Merkle Root.
@@ -268,25 +268,17 @@ The `checkTxInclusion` function MUST perform the following steps:
 
 ## Rationale
 
-The design of this EIP for an on-chain Bitcoin SPV gateway aims to securely bridge the Bitcoin and Ethereum ecosystems without trusted intermediaries, maximizing decentralization, security, and usability.
+During the design process of the `SPVGateway` contract, several decisions have been made that require clarification. The following initialization options of the smart contract were considered:
 
-To enable trustless verification of Bitcoin transactions on Ethereum, the `SPVGateway` contract MUST be entirely permissionless. Therefore, the initialization of the initial block MUST be as transparent and trust-minimized as possible, avoiding reliance on any privileged entity.
+1. **Hardcoding the Bitcoin genesis block:** This approach is the simplest for contract deployment as it embeds the initial state directly in the code. While offering absolute trustlessness of the starting point, it limits availability, as the full sync of the gateway would cost around ~215 ETH.
+2. **Initialization from an arbitrary block height by trusting provided cumulative work and height:** Currently, the gateway adopts this method as its initialization mechanism. While implying trust in the initial submitted values, it's a common practice for bootstrapping light clients and can be secured via off-chain mechanisms for initial validation (e.g., community-verified checkpoints).
+3. **Initialization with Zero-Knowledge Proof (ZKP) for historical correctness:** This advanced method involves proving the entire history of Bitcoin up to a specific block using ZKP.
 
-The following initialization options were considered:
+Upon submitting the raw block header, the gateway expects the `BlockHeaderData` fields to be converted to big-endian byte order. This is required to maintain EVM's efficiency, which is contrary to Bitcoin's native little-endian integer serialization.
 
-1.  **Hardcoding the Bitcoin genesis block:** This approach is the simplest for contract deployment as it embeds the initial state directly in the code. While offering absolute immutability of the starting point, it limits flexibility, as the client can only begin verifying from the very first Bitcoin block and cannot be bootstrapped from a more recent block height.
-2.  **Initialization from an arbitrary block height by trusting provided cumulative work and height:** This EIP adopts this method for its primary initialization mechanism. It allows for flexible bootstrapping of the SPV gateway from any valid historical block, significantly reducing the initial gas cost and time required compared to validating an entire chain from genesis. While this implies trust in the initial submitted values, it's a common practice for bootstrapping light clients and can be secured via off-chain mechanisms for initial validation (e.g., community-verified checkpoints).
-3.  **Initialization with Zero-Knowledge Proof (ZKP) for historical correctness:** This advanced method involves proving the entire history of Bitcoin up to a specific block using ZKP.
+There are no "finality" rules in the `SPVGateway` contract. The determination of such is left to consuming protocols, allowing individual definition to meet required security thresholds.
 
-Upon submission or internal processing of the raw block header, all fields within the `BlockHeaderData` structure MUST be converted to big-endian byte order. This ensures optimal compatibility and efficiency with Ethereum's native EVM arithmetic and cryptographic algorithms, which primarily operate on big-endian, unlike Bitcoin's native little-endian integer serialization.
-
-The `addBlockHeader` function is designed to accept any valid Bitcoin block headers, even if not currently part of the canonical chain. This is crucial as Bitcoin's consensus rules allow for chain reorganizations of arbitrary depth. A rigid SPV gateway tracking only the immediate canonical head risks vulnerability during forks.
-
-By maintaining multiple valid forks and tracking their cumulative Proof-of-Work, the `SPVGateway` enhances robustness against chain reorganizations. Consequently, the `SPVGateway` contract **does not** include internal block 'finalization' parameters. This determination is left to consuming protocols, promoting modularity and allowing each to define its own security thresholds.
-
-The inclusion of an OPTIONAL `addBlockHeaderBatch` function offers significant gas optimizations. For batches exceeding 11 blocks, `Median Time Past (MTP)` can be calculated using timestamps from memory, substantially reducing storage reads and transaction costs.
-
-The `verifyTx` function's `directions_` parameter is an integral part of a standard Merkle Proof from a full Bitcoin node. It provides explicit instructions for hashing order during Merkle Proof verification, ensuring accurate on-chain replication of the off-chain Merkle tree construction and cryptographic integrity.
+The inclusion of an OPTIONAL `addBlockHeaderBatch` function offers significant gas optimizations. For batches exceeding 11 blocks, MTP can be calculated using timestamps from `calldata`, substantially reducing storage reads and transaction costs.
 
 ## Backwards Compatibility
 
@@ -294,23 +286,23 @@ This EIP is fully backwards compatible.
 
 ## Reference Implementation
 
-A reference implementation of the `SPVGateway` contract, which adheres to this standard, is available [here](../assets/erc-XXXX/contracts/SPVGateway.sol).
+A reference implementation of the `SPVGateway` contract can be found [here](../assets/erc-XXXX/contracts/SPVGateway.sol).
 
-The following supporting libraries are provided to facilitate the implementation of a compliant `SPVGateway`:
+The following supporting libraries are provided together with the contract:
 
 - [`BlockHeader`](../assets/erc-XXXX/contracts/libs/BlockHeader.sol): A utility for parsing a raw, 80-byte block header into a structured format for on-chain processing.
-- [`TargetsHelper`](../assets/erc-XXXX/contracts/libs/TargetsHelper.sol): A helper library containing functions for converting the `Bits` field to the `target` value and back, as well as for calculating the new difficulty target during a retargeting period.
-- [`TxMerkleProof`](../assets/erc-XXXX/contracts/libs/TxMerkleProof.sol): A library for performing cryptographic verification of Merkle Proofs, which are used to prove the inclusion of a Bitcoin transaction in a block.
+- [`TargetsHelper`](../assets/erc-XXXX/contracts/libs/TargetsHelper.sol): A helper library containing functions for converting the `Bits` field to the `target` value and back, as well as for calculating the new difficulty target during a difficulty adjustment period.
+- [`TxMerkleProof`](../assets/erc-XXXX/contracts/libs/TxMerkleProof.sol): A library for performing cryptographic verification of Merkle proofs, which are used to prove the inclusion of a Bitcoin transaction in a block.
 
 > Please note that the reference implementation depends on the `@openzeppelin/contracts v5.2.0` and `solady v0.1.23`.
 
 ## Security Considerations
 
-Among potential vulnerabilities, the following can be noted.
+Among potential security issues, the following can be noted:
 
-The security of the `SPVGateway` is directly dependent on the security of Bitcoin's underlying PoW consensus. A successful 51% attack on the Bitcoin network, would allow an attacker to submit fraudulent block headers that would be accepted by the contract, thereby compromising its state.
+The security of the `SPVGateway` is directly dependent on the security of Bitcoin's underlying PoW consensus. A successful 51% attack on the Bitcoin network would allow an attacker to submit fraudulent block headers that would be accepted by the contract, compromising its state.
 
-Unlike other blockchain systems with deterministic finality, Bitcoin's consensus is probabilistic. The `SPVGateway` contract is designed to handle chain reorganizations of arbitrary depth, but it cannot prevent them. As a result, transactions included in a block may not be permanently final. All dApps and protocols relying on this contract MUST implement their own security policies to determine a sufficient number of block confirmations before a transaction is considered 'final' for their specific use case.
+Unlike other blockchain systems with deterministic finality, Bitcoin's consensus is probabilistic. The `SPVGateway` contract SHOULD be designed to handle chain reorganizations of arbitrary depth, but it cannot prevent them. As a result, transactions included in a block may not be permanently final. All dApps and protocols relying on this contract MUST implement their own security policies to determine a sufficient number of block confirmations before a transaction is considered "final" for their specific use case.
 
 While the `addBlockHeader` function is permissionless and validates each new header cryptographically, the contract's initial state (its starting block header, height, and cumulative PoW) is a point of trust. The integrity of the entire chain history within the contract is built upon the correctness of this initial data. Although the EIP's design allows for flexible bootstrapping, the responsibility for verifying the initial state falls on the community and the dApps that choose to use a specific deployment of the `SPVGateway`.
 
