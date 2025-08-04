@@ -69,23 +69,21 @@ For a Bitcoin block header to be considered valid and accepted into the chain, i
 
 Bitcoin's **mainchain** is determined not just by its length, but by the greatest **cumulative PoW** among all valid competing chains. This cumulative work represents the total computational effort expended to mine all blocks within a specific chain.
 
-The work contributed by a single block is inversely proportional to its `target` value. Specifically, the work of a block can be calculated as `1 / target`. The `target` value for a block is derived from its `Bits` field, where the first byte encodes the required left hand bit shift, and the other three bytes the actual target value.
+The work contributed by a single block is inversely proportional to its `target` value. Specifically, the work of a block can be calculated as `(2**256 - 1) / (target + 1)`. The `target` value for a block is derived from its `Bits` field, where the first byte encodes the required left hand bit shift, and the other three bytes the actual target value.
 
 The total cumulative work of a chain is the sum of the work values of all blocks within that chain. A block is considered part of the mainchain if it extends the chain with the greatest cumulative PoW.
 
 ### SPV Gateway
 
-The `SPVGateway` contract MUST provide a permissionless mechanism for its initial bootstrapping. This mechanism MUST allow for the submission of a valid Bitcoin block header, its corresponding block height, and the cumulative PoW up to that block, without requiring special permissions.
+The `SPVGateway` contract MUST provide a permissionless mechanism for its initialization. This mechanism MUST allow for the submission of a valid Bitcoin block header, its corresponding block height, and the cumulative PoW up to that block, without requiring special permissions.
 
-All fields within the `BlockHeaderData` MUST be converted to **big-endian** byte order for internal representation and processing within the smart contract.
-
-Furthermore, the `SPVGateway` MUST implement the following interface, which MAY be extended to provide additional functionality:
+The `SPVGateway` MUST implement the following interface:
 
 ```solidity
 pragma solidity ^0.8.0;
 
 /**
- * @notice Interface for an SPV (Simplified Payment Verification) gateway contract.
+ * @notice Interface for a Simplified Payment Verification Gateway contract.
  */
 interface ISPVGateway {
     /**
@@ -121,7 +119,7 @@ interface ISPVGateway {
      * Left: computed hash is on the left, sibling hash is on the right.
      * Right: computed hash is on the right, sibling hash is on the left.
      * Self: node has no sibling and is hashed with itself
-     * */
+     */
     enum HashDirection {
         Left,
         Right,
@@ -157,27 +155,26 @@ interface ISPVGateway {
     function addBlockHeader(bytes calldata blockHeaderRaw) external;
 
     /**
-     * @notice Validates a given block hash and returns its mainchain status and confirmation count
-     * 
-     * @param blockHash The hash of the block to validate
-     * @return isInMainchain True if the block is in the mainchain, false otherwise
-     * @return confirmationsCount The number of blocks that have been mined on top of the validated block
-     */
-    function validateBlockHash(bytes32 blockHash) external view returns (bool, uint256);
-
-    /**
-     * @notice Verifies that given txid is included in the specified block
+     * @notice Checks that given txId is included in the specified block
      * @param blockHash The hash of the block in which to verify the transaction
-     * @param txid The transaction id to verify
+     * @param txId The transaction id to verify
      * @param merkleProof The array of hashes used to build the Merkle root
      * @param directions The array indicating the hashing directions for the Merkle proof
      */
-    function verifyTx(
+    function checkTxInclusion(
         bytes32 blockHash,
-        bytes32 txid,
-        bytes32[] memory merkleProof,
+        bytes32 txId,
+        bytes32[] calldata merkleProof,
         HashDirection[] calldata directions
     ) external view returns (bool);
+
+    /**
+     * @notice Returns the current status of a given block
+     * @param blockHash The hash of the block to check
+     * @return isInMainchain True if the block is in the mainchain, false otherwise
+     * @return confirmationsCount The number of blocks that have been mined on top of the given block
+     */
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256);
 
     /**
      * @notice Returns the Merkle root of a given block hash.
@@ -207,7 +204,7 @@ interface ISPVGateway {
      * This represents the highest block number on the most accumulated work chain
      * @return The height of the mainchain head
      */
-    function getMainchainBlockHeight() external view returns (uint256);
+    function getMainchainHeight() external view returns (uint256);
 
     /**
      * @notice Returns the block height for a given block hash
@@ -232,23 +229,17 @@ interface ISPVGateway {
      * @return True if the block exists, false otherwise
      */
     function blockExists(bytes32 blockHash) external view returns (bool);
-
-    /**
-     * @notice Checks if a given block is part of the mainchain.
-     * This function determines if the block is on the most accumulated work chain
-     * @param blockHash The hash of the block to check
-     * @return True if the block is in the mainchain, false otherwise
-     */
-    function isInMainchain(bytes32 blockHash) external view returns (bool);
 }
 ```
 
-The `addBlockHeader` function MUST:
+All fields within the `BlockHeaderData` struct MUST be converted to big-endian byte order for internal representation and processing within the smart contract.
+
+The `addBlockHeader` function MUST perform the following checks:
 - Validate that the submitted raw block header has a fixed size of 80 bytes.
-- Enforce all block header validation rules as specified in the 'Block Header Validation Rules' section.
-- Integrate the new block header into the known chain by calculating its cumulative PoW and managing potential chain reorganizations as defined in the 'Canonical Chain Definition' section.
+- Enforce all block header validation rules as specified in the "Block Header Validation Rules" section.
+- Integrate the new block header into the known chain by calculating its cumulative PoW and managing potential chain reorganizations as defined in the "Mainchain Definition" section.
 - Emit a `BlockHeaderAdded` event upon successful addition of the block header.
-- Emit a `MainchainHeadUpdated` event if the canonical chain was updated.
+- Emit a `MainchainHeadUpdated` event if the main chain was updated.
 
 ## Rationale
 
