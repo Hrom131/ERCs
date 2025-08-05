@@ -71,7 +71,7 @@ Every Bitcoin block header has a field `Merkle Root` that corresponds to a Merkl
 
 The transactions Merkle tree is built recursively performing double `SHA256` hash on each pair of sibling nodes, where the tree leaves are the double `SHA256` hash of the raw transaction bytes. In case the node has no siblings, the hashing is done over the node with itself.
 
-To verify the transaction inclusion into the block, one SHOULD build the Merkle root from the ground up and compare it with the `Merkle Root` stored in the selected block header. The corresponding Merkle path and hashing direction bits can be obtained by querying a Bitcoin full node.
+To verify the transaction inclusion into the block, one SHOULD build the Merkle root from the ground up and compare it with the `Merkle Root` stored in the selected block header. The corresponding Merkle path and hashing direction bits can be obtained and processed by querying a Bitcoin full node.
 
 #### Mainchain Definition
 
@@ -168,6 +168,7 @@ interface ISPVGateway {
      * @param txId The transaction id to verify
      * @param merkleProof The array of hashes used to build the Merkle root
      * @param directions The array indicating the hashing directions for the Merkle proof
+     * @return True if the txId is present in the block's Merkle tree, false otherwise
      */
     function checkTxInclusion(
         bytes32 blockHash,
@@ -272,13 +273,13 @@ The inclusion of an OPTIONAL `addBlockHeaderBatch` function offers significant g
 
 This EIP is fully backwards compatible.
 
-## Test Cases
+### Deployment Method
 
 <!-- TODO -->
 
 TBD
 
-### Deployment Method
+## Test Cases
 
 <!-- TODO -->
 
