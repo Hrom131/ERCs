@@ -142,16 +142,7 @@ contract SPVGateway is ISPVGateway, Initializable {
     }
 
     /// @inheritdoc ISPVGateway
-    function validateBlockHash(bytes32 blockHash) external view returns (bool, uint256) {
-        if (!isInMainchain(blockHash)) {
-            return (false, 0);
-        }
-
-        return (true, getMainchainBlockHeight() - getBlockHeight(blockHash));
-    }
-
-    /// @inheritdoc ISPVGateway
-    function verifyTx(
+    function checkTxInclusion(
         bytes32 blockHash,
         bytes32 txid,
         bytes32[] calldata merkleProof,
@@ -161,6 +152,15 @@ contract SPVGateway is ISPVGateway, Initializable {
         bytes32 reversedRoot = bytes32(LibBit.reverseBytes(uint256(blockMerkleRoot)));
 
         return TxMerkleProof.verify(merkleProof, directions, reversedRoot, txid);
+    }
+
+    /// @inheritdoc ISPVGateway
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256) {
+        if (!isInMainchain(blockHash)) {
+            return (false, 0);
+        }
+
+        return (true, getMainchainHeight() - getBlockHeight(blockHash));
     }
 
     /// @inheritdoc ISPVGateway
@@ -219,7 +219,7 @@ contract SPVGateway is ISPVGateway, Initializable {
     }
 
     /// @inheritdoc ISPVGateway
-    function getMainchainBlockHeight() public view returns (uint256) {
+    function getMainchainHeight() public view returns (uint256) {
         return getBlockHeight(_getSPVGatewayStorage().mainchainHead);
     }
 

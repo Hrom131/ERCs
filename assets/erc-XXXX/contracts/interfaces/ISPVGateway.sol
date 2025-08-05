@@ -114,26 +114,27 @@ interface ISPVGateway {
     function addBlockHeader(bytes calldata blockHeaderRaw) external;
 
     /**
-     * @notice Validates a given block hash and returns its mainchain status and confirmation count
-     * @param blockHash The hash of the block to validate
-     * @return isInMainchain True if the block is in the mainchain, false otherwise
-     * @return confirmationsCount The number of blocks that have been mined on top of the validated block
-     */
-    function validateBlockHash(bytes32 blockHash) external view returns (bool, uint256);
-
-    /**
-     * @notice Verifies that given txid is included in the specified block
+     * @notice Checks that given txId is included in the specified block
      * @param blockHash The hash of the block in which to verify the transaction
-     * @param txid The transaction id to verify
+     * @param txId The transaction id to verify
      * @param merkleProof The array of hashes used to build the Merkle root
      * @param directions The array indicating the hashing directions for the Merkle proof
+     * @return True if the txId is present in the block's Merkle tree, false otherwise
      */
-    function verifyTx(
+    function checkTxInclusion(
         bytes32 blockHash,
-        bytes32 txid,
-        bytes32[] memory merkleProof,
+        bytes32 txId,
+        bytes32[] calldata merkleProof,
         TxMerkleProof.HashDirection[] calldata directions
     ) external view returns (bool);
+
+    /**
+     * @notice Returns the current status of a given block
+     * @param blockHash The hash of the block to check
+     * @return isInMainchain True if the block is in the mainchain, false otherwise
+     * @return confirmationsCount The number of blocks that have been mined on top of the given block
+     */
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256);
 
     /**
      * @notice Returns the cumulative work of the last epoch.
@@ -178,7 +179,7 @@ interface ISPVGateway {
      * This represents the highest block number on the most accumulated work chain
      * @return The height of the mainchain head
      */
-    function getMainchainBlockHeight() external view returns (uint256);
+    function getMainchainHeight() external view returns (uint256);
 
     /**
      * @notice Returns the block height for a given block hash
