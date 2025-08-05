@@ -303,6 +303,8 @@ Among potential security issues, the following can be noted:
 
 The security of the `SPVGateway` is directly dependent on the security of Bitcoin's underlying PoW consensus. A successful 51% attack on the Bitcoin network would allow an attacker to submit fraudulent block headers that would be accepted by the contract, compromising its state.
 
+The block header validation rules require a Bitcoin node to check that the newly created block is not more than 2 hours ahead of the node's network-adjusted time. This check is impossible to implement on the `SPVGateway` smart contract, hence it is omitted.
+
 Unlike other blockchain systems with deterministic finality, Bitcoin's consensus is probabilistic. The `SPVGateway` contract SHOULD be designed to handle chain reorganizations of arbitrary depth, but it cannot prevent them. As a result, transactions included in a block may not be permanently final. All dApps and protocols relying on this contract MUST implement their own security policies to determine a sufficient number of block confirmations before a transaction is considered "final" for their specific use case.
 
 While the `addBlockHeader` function is permissionless and validates each new header cryptographically, the contract's initial state (its starting block header, height, and cumulative PoW) is a point of trust. The integrity of the entire chain history within the contract is built upon the correctness of this initial data. Although the EIP's design allows for flexible bootstrapping, the responsibility for verifying the initial state falls on the community and the dApps that choose to use a specific deployment of the `SPVGateway`.
