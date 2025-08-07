@@ -12,12 +12,12 @@ library TargetsHelper {
      * @notice The ideal expected time for 2016 blocks to be mined, in seconds.
      * This is based on a 10-minute block interval
      */
-    uint256 public constant EXPECTED_TARGET_BLOCKS_TIME = 1209600;
+    uint32 public constant EXPECTED_TARGET_BLOCKS_TIME = 1209600;
     /**
      * @notice The number of blocks after which the difficulty target is adjusted.
      * This is a fundamental constant in Bitcoin's difficulty adjustment algorithm
      */
-    uint256 public constant DIFFICULTY_ADJUSTMENT_INTERVAL = 2016;
+    uint64 public constant DIFFICULTY_ADJUSTMENT_INTERVAL = 2016;
 
     /**
      * @notice The initial difficulty target for the Bitcoin blockchain.
@@ -54,7 +54,7 @@ library TargetsHelper {
      * @param blockHeight The height of the block to check
      * @return True if it's an adjustment block, false otherwise
      */
-    function isTargetAdjustmentBlock(uint256 blockHeight) internal pure returns (bool) {
+    function isTargetAdjustmentBlock(uint64 blockHeight) internal pure returns (bool) {
         return getEpochBlockNumber(blockHeight) == 0 && blockHeight > 0;
     }
 
@@ -64,7 +64,7 @@ library TargetsHelper {
      * @param blockHeight The height of the block
      * @return The block number within its current epoch
      */
-    function getEpochBlockNumber(uint256 blockHeight) internal pure returns (uint256) {
+    function getEpochBlockNumber(uint64 blockHeight) internal pure returns (uint64) {
         return blockHeight % DIFFICULTY_ADJUSTMENT_INTERVAL;
     }
 
@@ -77,7 +77,7 @@ library TargetsHelper {
      */
     function countNewRoundedTarget(
         bytes32 currentTarget,
-        uint256 actualPassedTime
+        uint32 actualPassedTime
     ) internal pure returns (bytes32) {
         return roundTarget(countNewTarget(currentTarget, actualPassedTime));
     }
@@ -91,7 +91,7 @@ library TargetsHelper {
      */
     function countNewTarget(
         bytes32 currentTarget,
-        uint256 actualPassedTime
+        uint32 actualPassedTime
     ) internal pure returns (bytes32) {
         uint256 currentRatio = (actualPassedTime * TARGET_FIXED_POINT_FACTOR) /
             EXPECTED_TARGET_BLOCKS_TIME;
@@ -124,7 +124,7 @@ library TargetsHelper {
      */
     function countCumulativeWork(
         bytes32 epochTarget,
-        uint256 blocksCount
+        uint64 blocksCount
     ) internal pure returns (uint256) {
         return countBlockWork(epochTarget) * blocksCount;
     }

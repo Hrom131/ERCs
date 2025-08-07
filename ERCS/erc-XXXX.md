@@ -128,7 +128,7 @@ interface ISPVGateway {
      * MUST be emitted whenever the mainchain head changed (e.g. in the `addBlockHeader`, `addBlockHeaderBatch` functions)
      */
     event MainchainHeadUpdated(
-        uint256 indexed newMainchainHeight,
+        uint64 indexed newMainchainHeight,
         bytes32 indexed newMainchainHead
     );
 
@@ -136,7 +136,7 @@ interface ISPVGateway {
      * MUST be emitted whenever the new block header added to the SPV contract state
      * (e.g. in the `addBlockHeader`, `addBlockHeaderBatch` functions)
      */
-    event BlockHeaderAdded(uint256 indexed blockHeight, bytes32 indexed blockHash);
+    event BlockHeaderAdded(uint64 indexed blockHeight, bytes32 indexed blockHash);
 
     /**
      * @notice Adds a single raw block header to the contract.
@@ -179,7 +179,7 @@ interface ISPVGateway {
      * This represents the highest block number on the most accumulated work chain
      * @return The height of the mainchain head
      */
-    function getMainchainHeight() external view returns (uint256);
+    function getMainchainHeight() external view returns (uint64);
 
     /**
      * @notice Returns the block header data for a given block hash.
@@ -195,7 +195,7 @@ interface ISPVGateway {
      * @return confirmationsCount The number of blocks that have been mined on top of 
      * the given block if the block is in the mainchain
      */
-    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256);
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint64);
 
     /**
      * @notice Returns the Merkle root of a given block hash.
@@ -211,7 +211,7 @@ interface ISPVGateway {
      * @param blockHash The hash of the block
      * @return The height of the block
      */
-    function getBlockHeight(bytes32 blockHash) external view returns (uint256);
+    function getBlockHeight(bytes32 blockHash) external view returns (uint64);
 
     /**
      * @notice Returns the block hash for a given block height.
@@ -219,7 +219,7 @@ interface ISPVGateway {
      * @param blockHeight The height of the block
      * @return The hash of the block
      */
-    function getBlockHash(uint256 blockHeight) external view returns (bytes32);
+    function getBlockHash(uint64 blockHeight) external view returns (bytes32);
 
     /**
      * @notice Checks if a block exists in the contract's storage.

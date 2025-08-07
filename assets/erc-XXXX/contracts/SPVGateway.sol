@@ -56,7 +56,7 @@ contract SPVGateway is ISPVGateway, Initializable {
 
     function __SPVGateway_init(
         bytes calldata blockHeaderRaw,
-        uint256 blockHeight,
+        uint64 blockHeight,
         uint256 cumulativeWork
     ) external initializer {
         (BlockHeaderData memory blockHeader, bytes32 blockHash) = _parseBlockHeaderRaw(
@@ -91,11 +91,11 @@ contract SPVGateway is ISPVGateway, Initializable {
             bytes32[] memory blockHashes
         ) = _parseBlockHeadersRaw(blockHeaderRawArray);
 
-        uint256 firstBlockHeight = getBlockHeight(blockHeaders[0].prevBlockHash) + 1;
+        uint64 firstBlockHeight = getBlockHeight(blockHeaders[0].prevBlockHash) + 1;
         bytes32 currentTarget = getBlockTarget(blockHeaders[0].prevBlockHash);
 
-        for (uint256 i = 0; i < blockHeaderRawArray.length; ++i) {
-            uint256 currentBlockHeight = firstBlockHeight + i;
+        for (uint64 i = 0; i < blockHeaderRawArray.length; ++i) {
+            uint64 currentBlockHeight = firstBlockHeight + i;
 
             currentTarget = _updateLastEpochCumulativeWork(currentTarget, currentBlockHeight);
 
@@ -126,7 +126,7 @@ contract SPVGateway is ISPVGateway, Initializable {
             PrevBlockDoesNotExist(blockHeader.prevBlockHash)
         );
 
-        uint256 blockHeight = getBlockHeight(blockHeader.prevBlockHash) + 1;
+        uint64 blockHeight = getBlockHeight(blockHeader.prevBlockHash) + 1;
         bytes32 currentTarget = getBlockTarget(blockHeader.prevBlockHash);
 
         currentTarget = _updateLastEpochCumulativeWork(currentTarget, blockHeight);
@@ -155,12 +155,13 @@ contract SPVGateway is ISPVGateway, Initializable {
     }
 
     /// @inheritdoc ISPVGateway
-    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256) {
-        if (!isInMainchain(blockHash)) {
-            return (false, 0);
-        }
+    function getMainchainHead() public view returns (bytes32) {
+        return _getSPVGatewayStorage().mainchainHead;
+    }
 
-        return (true, getMainchainHeight() - getBlockHeight(blockHash));
+    /// @inheritdoc ISPVGateway
+    function getMainchainHeight() public view returns (uint64) {
+        return getBlockHeight(_getSPVGatewayStorage().mainchainHead);
     }
 
     /// @inheritdoc ISPVGateway
@@ -178,19 +179,33 @@ contract SPVGateway is ISPVGateway, Initializable {
         });
     }
 
+    /// @inheritdoc ISPVContract
+    function getBlockHeader(bytes32 blockHash) public view returns (BlockHeaderData memory) {
+        BlockData storage blockData = _getSPVContractStorage().blocksData[blockHash];
+
+        return
+            BlockHeaderData({
+                version: blockData.version,
+                prevBlockHash: blockData.prevBlockHash,
+                merkleRoot: blockData.merkleRoot,
+                time: blockData.time,
+                bits: blockData.bits,
+                nonce: blockData.nonce
+            });
+    }
+
     /// @inheritdoc ISPVGateway
-    function getLastEpochCumulativeWork() external view returns (uint256) {
-        return _getSPVGatewayStorage().lastEpochCumulativeWork;
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint64) {
+        if (!isInMainchain(blockHash)) {
+            return (false, 0);
+        }
+
+        return (true, getMainchainHeight() - getBlockHeight(blockHash));
     }
 
     /// @inheritdoc ISPVGateway
     function getBlockMerkleRoot(bytes32 blockHash) public view returns (bytes32) {
-        return _getBlockHeader(blockHash).merkleRoot;
-    }
-
-    /// @inheritdoc ISPVGateway
-    function getMainchainHead() public view returns (bytes32) {
-        return _getSPVGatewayStorage().mainchainHead;
+        return _getSPVContractStorage().blocksData[blockHash].merkleRoot;
     }
 
     /// @inheritdoc ISPVGateway
@@ -199,28 +214,28 @@ contract SPVGateway is ISPVGateway, Initializable {
     }
 
     /// @inheritdoc ISPVGateway
-    function getBlockHeight(bytes32 blockHash) public view returns (uint256) {
+    function getBlockHeight(bytes32 blockHash) public view returns (uint64) {
         return _getSPVGatewayStorage().blocksData[blockHash].blockHeight;
     }
 
     /// @inheritdoc ISPVGateway
-    function getBlockHash(uint256 blockHeight) public view returns (bytes32) {
+    function getBlockHash(uint64 blockHeight) public view returns (bytes32) {
         return _getSPVGatewayStorage().blocksHeightToBlockHash[blockHeight];
     }
 
     /// @inheritdoc ISPVGateway
     function getBlockTarget(bytes32 blockHash) public view returns (bytes32) {
-        return TargetsHelper.bitsToTarget(_getBlockHeader(blockHash).bits);
+        return TargetsHelper.bitsToTarget(_getSPVContractStorage().blocksData[blockHash].bits);
+    }
+
+    /// @inheritdoc ISPVGateway
+    function getLastEpochCumulativeWork() public view returns (uint256) {
+        return _getSPVGatewayStorage().lastEpochCumulativeWork;
     }
 
     /// @inheritdoc ISPVGateway
     function blockExists(bytes32 blockHash) public view returns (bool) {
-        return _getBlockHeader(blockHash).time > 0;
-    }
-
-    /// @inheritdoc ISPVGateway
-    function getMainchainHeight() public view returns (uint256) {
-        return getBlockHeight(_getSPVGatewayStorage().mainchainHead);
+        return _getBlockHeaderTime(blockHash) > 0;
     }
 
     /// @inheritdoc ISPVGateway
@@ -231,11 +246,19 @@ contract SPVGateway is ISPVGateway, Initializable {
     function _addBlock(
         BlockHeaderData memory blockHeader,
         bytes32 blockHash,
-        uint256 blockHeight
+        uint64 blockHeight
     ) internal {
         SPVGatewayStorage storage $ = _getSPVGatewayStorage();
 
-        $.blocksData[blockHash] = BlockData({header: blockHeader, blockHeight: blockHeight});
+        $.blocksData[blockHash_] = BlockData({
+            prevBlockHash: blockHeader.prevBlockHash,
+            merkleRoot: blockHeader.merkleRoot,
+            version: blockHeader.version,
+            time: blockHeader.time,
+            nonce: blockHeader.nonce,
+            bits: blockHeader.bits,
+            blockHeight: blockHeight
+        });
 
         _updateMainchainHead(blockHeader, blockHash, blockHeight);
 
@@ -245,7 +268,7 @@ contract SPVGateway is ISPVGateway, Initializable {
     function _updateMainchainHead(
         BlockHeaderData memory blockHeader,
         bytes32 blockHash,
-        uint256 blockHeight
+        uint64 blockHeight
     ) internal {
         SPVGatewayStorage storage $ = _getSPVGatewayStorage();
 
@@ -269,31 +292,34 @@ contract SPVGateway is ISPVGateway, Initializable {
             $.blocksHeightToBlockHash[blockHeight] = blockHash;
 
             bytes32 prevBlockHash = blockHeader.prevBlockHash;
-            uint256 prevBlockHeight = blockHeight - 1;
+            uint64 prevBlockHeight = blockHeight - 1;
 
             do {
                 $.blocksHeightToBlockHash[prevBlockHeight] = prevBlockHash;
 
-                prevBlockHash = _getBlockHeader(prevBlockHash).prevBlockHash;
-                --prevBlockHeight;
+                prevBlockHash = _getSPVContractStorage().blocksData[prevBlockHash].prevBlockHash;
+
+                unchecked {
+                    --prevBlockHeight;
+                }
             } while (getBlockHash(prevBlockHeight) != prevBlockHash && prevBlockHash != 0);
         }
     }
 
     function _updateLastEpochCumulativeWork(
         bytes32 currentTarget,
-        uint256 blockHeight
+        uint64 blockHeight
     ) internal returns (bytes32) {
         SPVGatewayStorage storage $ = _getSPVGatewayStorage();
 
         if (TargetsHelper.isTargetAdjustmentBlock(blockHeight)) {
             $.lastEpochCumulativeWork += TargetsHelper.countEpochCumulativeWork(currentTarget);
 
-            uint256 epochStartTime = _getBlockHeader(
+            uint32 epochStartTime = _getBlockHeaderTime(
                 getBlockHash(blockHeight - TargetsHelper.DIFFICULTY_ADJUSTMENT_INTERVAL)
-            ).time;
-            uint256 epochEndTime = _getBlockHeader(getBlockHash(blockHeight - 1)).time;
-            uint256 passedTime = epochEndTime - epochStartTime;
+            );
+            uint32 epochEndTime = _getBlockHeaderTime(getBlockHash(blockHeight - 1));
+            uint32 passedTime = epochEndTime - epochStartTime;
 
             currentTarget = TargetsHelper.countNewRoundedTarget(currentTarget, passedTime);
         }
@@ -340,7 +366,7 @@ contract SPVGateway is ISPVGateway, Initializable {
 
     function _getStorageMedianTime(
         BlockHeaderData memory blockHeader,
-        uint256 blockHeight
+        uint64 blockHeight
     ) internal view returns (uint32) {
         if (blockHeight == 1) {
             return blockHeader.time;
@@ -349,17 +375,17 @@ contract SPVGateway is ISPVGateway, Initializable {
         bytes32 toBlockHash = blockHeader.prevBlockHash;
 
         if (blockHeight - 1 < MEDIAN_PAST_BLOCKS) {
-            return _getBlockHeader(toBlockHash).time;
+            return _getBlockHeaderTime(toBlockHash);
         }
 
         uint256[] memory blocksTime = new uint256[](MEDIAN_PAST_BLOCKS);
         bool needsSort;
 
         for (uint256 i = MEDIAN_PAST_BLOCKS; i > 0; --i) {
-            uint32 currentTime = _getBlockHeader(toBlockHash).time;
+            uint32 currentTime = _getBlockHeaderTime(toBlockHash);
 
             blocksTime[i - 1] = currentTime;
-            toBlockHash = _getBlockHeader(toBlockHash).prevBlockHash;
+            toBlockHash = _getSPVContractStorage().blocksData[toBlockHash].prevBlockHash;
 
             if (i < MEDIAN_PAST_BLOCKS && currentTime > blocksTime[i]) {
                 needsSort = true;
@@ -371,7 +397,7 @@ contract SPVGateway is ISPVGateway, Initializable {
 
     function _getMemoryMedianTime(
         BlockHeaderData[] memory blockHeaders,
-        uint256 to
+        uint64 to
     ) internal pure returns (uint32) {
         if (blockHeaders.length < MEDIAN_PAST_BLOCKS) {
             return 0;
@@ -394,7 +420,7 @@ contract SPVGateway is ISPVGateway, Initializable {
     }
 
     function _getBlockCumulativeWork(
-        uint256 blockHeight,
+        uint64 blockHeight,
         bytes32 blockHash
     ) internal view returns (uint256) {
         uint256 currentEpochCumulativeWork_ = getBlockTarget(blockHash).countCumulativeWork(
@@ -404,8 +430,8 @@ contract SPVGateway is ISPVGateway, Initializable {
         return _getSPVGatewayStorage().lastEpochCumulativeWork + currentEpochCumulativeWork_;
     }
 
-    function _getBlockHeader(bytes32 blockHash) internal view returns (BlockHeaderData storage) {
-        return _getSPVGatewayStorage().blocksData[blockHash].header;
+    function _getBlockHeaderTime(bytes32 blockHash) internal view returns (uint32) {
+        return _getSPVContractStorage().blocksData[blockHash].time;
     }
 
     function _onlyNonExistingBlock(bytes32 blockHash) internal view {
