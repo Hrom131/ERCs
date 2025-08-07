@@ -113,16 +113,6 @@ interface ISPVGateway {
     }
 
     /**
-     * @notice Represents the data of a block
-     * @param header The parsed block header data
-     * @param blockHeight The block height
-     */
-    struct BlockData {
-        BlockHeaderData header;
-        uint256 blockHeight;
-    }
-
-    /**
      * @notice Possible directions for hashing:
      * Left: computed hash is on the left, sibling hash is on the right.
      * Right: computed hash is on the right, sibling hash is on the left.
@@ -149,18 +139,18 @@ interface ISPVGateway {
     event BlockHeaderAdded(uint256 indexed blockHeight, bytes32 indexed blockHash);
 
     /**
-     * @notice OPTIONAL Function that adds a batch of the block headers to the contract.
-     * Each block header is validated and added sequentially
-     * @param blockHeaderRawArray An array of raw block header bytes
-     */
-    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray) external;
-
-    /**
      * @notice Adds a single raw block header to the contract.
      * The block header is validated before being added
      * @param blockHeaderRaw The raw block header bytes
      */
     function addBlockHeader(bytes calldata blockHeaderRaw) external;
+
+    /**
+     * @notice OPTIONAL Function that adds a batch of the block headers to the contract.
+     * Each block header is validated and added sequentially
+     * @param blockHeaderRawArray An array of raw block header bytes
+     */
+    function addBlockHeaderBatch(bytes[] calldata blockHeaderRawArray) external;
 
     /**
      * @notice Checks that given txId is included in the specified block
@@ -178,30 +168,6 @@ interface ISPVGateway {
     ) external view returns (bool);
 
     /**
-     * @notice Returns the current status of a given block
-     * @param blockHash The hash of the block to check
-     * @return isInMainchain True if the block is in the mainchain, false otherwise
-     * @return confirmationsCount The number of blocks that have been mined on top of the given block
-     */
-    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256);
-
-    /**
-     * @notice Returns the Merkle root of a given block hash.
-     * This function retrieves the Merkle root from the stored block header data
-     * @param blockHash The hash of the block
-     * @return The Merkle root of the block
-     */
-    function getBlockMerkleRoot(bytes32 blockHash) external view returns (bytes32);
-
-    /**
-     * @notice Returns the basic block data for a given block hash.
-     * This includes the block header and its height
-     * @param blockHash The hash of the block
-     * @return The basic block data
-     */
-    function getBlockData(bytes32 blockHash) external view returns (BlockData memory);
-
-    /**
      * @notice Returns the hash of the current mainchain head.
      * This represents the highest block on the most accumulated work chain
      * @return The hash of the mainchain head
@@ -216,6 +182,30 @@ interface ISPVGateway {
     function getMainchainHeight() external view returns (uint256);
 
     /**
+     * @notice Returns the block header data for a given block hash.
+     * @param blockHash The hash of the block
+     * @return The block header data
+     */
+    function getBlockHeader(bytes32 blockHash) external view returns (BlockHeaderData memory);
+
+    /**
+     * @notice Returns the current status of a given block
+     * @param blockHash The hash of the block to check
+     * @return isInMainchain True if the block is in the mainchain, false otherwise
+     * @return confirmationsCount The number of blocks that have been mined on top of 
+     * the given block if the block is in the mainchain
+     */
+    function getBlockStatus(bytes32 blockHash) external view returns (bool, uint256);
+
+    /**
+     * @notice Returns the Merkle root of a given block hash.
+     * This function retrieves the Merkle root from the stored block header data
+     * @param blockHash The hash of the block
+     * @return The Merkle root of the block
+     */
+    function getBlockMerkleRoot(bytes32 blockHash) external view returns (bytes32);
+
+    /**
      * @notice Returns the block height for a given block hash
      * This function retrieves the height at which the block exists in the chain
      * @param blockHash The hash of the block
@@ -226,10 +216,10 @@ interface ISPVGateway {
     /**
      * @notice Returns the block hash for a given block height.
      * This function retrieves the hash of the block from the mainchain at the specified height
-     * @param blockHeight_ The height of the block
+     * @param blockHeight The height of the block
      * @return The hash of the block
      */
-    function getBlockHash(uint256 blockHeight_) external view returns (bytes32);
+    function getBlockHash(uint256 blockHeight) external view returns (bytes32);
 
     /**
      * @notice Checks if a block exists in the contract's storage.
