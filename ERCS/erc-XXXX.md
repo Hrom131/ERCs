@@ -249,7 +249,7 @@ The `checkTxInclusion` function MUST perform the following steps:
 
 During the design process of the `SPVGateway` contract, several decisions have been made that require clarification. The following initialization options of the smart contract were considered:
 
-1. **Hardcoding the Bitcoin genesis block:** This approach is the simplest for contract deployment as it embeds the initial state directly in the code. While offering absolute trustlessness of the starting point, it limits availability, as the full sync of the gateway would cost around ~215 ETH.
+1. **Hardcoding the Bitcoin genesis block:** This approach is the simplest for contract deployment as it embeds the initial state directly in the code. While offering absolute trustlessness of the starting point, it limits availability, as the full sync of the gateway would cost around ~100 ETH at the gas price of 1 gwei.
 2. **Initialization from an arbitrary block height by trusting provided cumulative work and height:** Currently, the gateway adopts this method as its initialization mechanism. While implying trust in the initial submitted values, it's a common practice for bootstrapping light clients and can be secured via off-chain mechanisms for initial validation (e.g., community-verified checkpoints).
 3. **Initialization with Zero-Knowledge Proof (ZKP) for historical correctness:** This advanced method involves proving the entire history of Bitcoin up to a specific block using ZKP.
 
